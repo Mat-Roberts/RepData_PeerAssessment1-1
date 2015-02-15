@@ -2,30 +2,44 @@ Reproducible Research: Peer Assessment 1
 ========================================
 
 ## Loading and preprocessing the data
-```{r}
+
+```r
 dataActivity <- read.table("activity.csv", sep=",",header=TRUE,na.strings="NA",stringsAsFactors=FALSE)
 dataActivity$date <- as.Date(dataActivity$date, '%Y-%m-%d')
-
 ```
 
 ## What is the mean total number of steps taken per day?
 
 1. Make a histogram of the total number of steps taken each day
 
-```{r}
+
+```r
 stepsPerDay <- aggregate (steps ~ date, data = dataActivity, FUN = sum)
 hist(stepsPerDay$steps)
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-2-1.png) 
+
 2. Calculate and report the **mean** and **median** total number of
    steps taken per day
 
-```{r}
+
+```r
 meanStepsPerDay <- mean(stepsPerDay$steps)
 print(meanStepsPerDay)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 medianStepsPerDay <- median(stepsPerDay$steps)
 print(medianStepsPerDay)
+```
 
+```
+## [1] 10765
 ```
 
 ## What is the average daily activity pattern?
@@ -34,18 +48,25 @@ print(medianStepsPerDay)
    interval (x-axis) and the average number of steps taken, averaged
    across all days (y-axis)
 
-```{r}
+
+```r
 stepsPerInterval <- aggregate(steps ~ interval, data = dataActivity, FUN = mean)
 plot(stepsPerInterval$interval, stepsPerInterval$steps, xlab="Interval",ylab="Average Steps", type="l")
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
 
 2. Which 5-minute interval, on average across all the days in the
    dataset, contains the maximum number of steps?
 
-```{r}
+
+```r
 maxInterval <- stepsPerInterval[stepsPerInterval$steps == max(stepsPerInterval$steps), 1]
 print(maxInterval)
+```
+
+```
+## [1] 835
 ```
 
 
@@ -54,9 +75,14 @@ print(maxInterval)
 1. Calculate and report the total number of missing values in the
    dataset (i.e. the total number of rows with `NA`s)
 
-```{r}
+
+```r
 numberOfNA <- nrow(subset(dataActivity, is.na(dataActivity$steps)))
 print(numberOfNA)
+```
+
+```
+## [1] 2304
 ```
 
 2. Devise a strategy for filling in all of the missing values in the
@@ -67,7 +93,8 @@ print(numberOfNA)
 3. Create a new dataset that is equal to the original dataset but with
    the missing data filled in.
 
-```{r}
+
+```r
 library(plyr)
 imput.mean <- function(x) replace(x, is.na(x), mean(x, na.rm = TRUE))
 newDataActivity <- ddply(dataActivity, ~ interval, transform, steps = imput.mean(steps))
@@ -80,16 +107,30 @@ newDataActivity <- newDataActivity[order(newDataActivity$date,newDataActivity$in
    the first part of the assignment? What is the impact of imputing
    missing data on the estimates of the total daily number of steps?
 
-```{r}
+
+```r
 newStepsPerDay <- aggregate (steps ~ date, data = newDataActivity, FUN = sum)
 hist(newStepsPerDay$steps)
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-8-1.png) 
 
+```r
 newmeanStepsPerDay <- mean(newStepsPerDay$steps)
 print(newmeanStepsPerDay)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 newmedianStepsPerDay <- median(newStepsPerDay$steps)
 print(newmedianStepsPerDay)
+```
 
+```
+## [1] 10766.19
 ```
 
 The values per day are a little higher now, but the median and mean seem to be near the same.
@@ -100,7 +141,8 @@ The values per day are a little higher now, but the median and mean seem to be n
    "weekday" and "weekend" indicating whether a given date is a
    weekday or weekend day.
 
-```{r}
+
+```r
 newDataActivity$day <- weekdays(as.Date(newDataActivity$date))
 newDataActivity$day[newDataActivity$day=="Monday"] <- "Weekday"
 newDataActivity$day[newDataActivity$day=="Tuesday"] <- "Weekday"
@@ -110,7 +152,6 @@ newDataActivity$day[newDataActivity$day=="Friday"] <- "Weekday"
 newDataActivity$day[newDataActivity$day=="Saturday"] <- "Weekend"
 newDataActivity$day[newDataActivity$day=="Sunday"] <- "Weekend"
 newDataActivity[sapply(newDataActivity, is.character)] <- lapply(newDataActivity[sapply(newDataActivity, is.character)], as.factor)
-
 ```
 
 2. Make a panel plot containing a time series plot (i.e. `type = "l"`)
@@ -118,12 +159,14 @@ newDataActivity[sapply(newDataActivity, is.character)] <- lapply(newDataActivity
    taken, averaged across all weekday days or weekend days
    (y-axis).
 
-```{r}
+
+```r
 newMeanDataActivity <- aggregate(steps ~ interval + day, data = newDataActivity, FUN = mean)
 dataEnd <- subset(newMeanDataActivity,newMeanDataActivity$day == "Weekend")
 dataDay <- subset(newMeanDataActivity,newMeanDataActivity$day == "Weekday")
 par(mfcol=c(2,1))
 plot(dataEnd$interval,dataEnd$steps, xlab="interval", ylab="steps", type="l",col="black", main="Weekend")
 plot(dataDay$interval,dataDay$steps, xlab="interval", ylab="steps", type="l",col="black", main="Weekday")
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-10-1.png) 
